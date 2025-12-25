@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+
+raw="$(mktemp)"
+clean="$(mktemp)"
+cat >"$raw"
+
+# Strip OSC (like ]133;A) and CSI (like [34m) sequences
+perl -pe 's/\e\][^\a]*(\a|\e\\)//g; s/\e\[[0-9;]*[A-Za-z]//g' "$raw" >"$clean"
+
+# Attach nvim to the real terminal, not kitty's stdin pipe
+setsid -f kitty -1 sh -lc "~/my-tools/bin/nvim '$clean'; rm -f '$clean'" >/dev/null 2>&1
